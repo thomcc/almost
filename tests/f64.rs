@@ -828,7 +828,7 @@ fn test_f64() {
 
     let mut tolerances = [
         std::f64::EPSILON * 2.0,
-        almost::f64::TOLERANCE,
+        almost::F64_TOLERANCE,
         1.0f64.prev(),
         0.0, 0.0, 0.0, 0.0, 0.0
     ];
@@ -882,12 +882,12 @@ fn test_f64() {
         }
     }
 
-    for &v in &[almost::f64::TOLERANCE, 1.0, std::f64::NAN, std::f64::INFINITY] {
+    for &v in &[almost::F64_TOLERANCE, 1.0, std::f64::NAN, std::f64::INFINITY] {
         assert!(!almost::zero(v), "{} {:x}", v, v.to_bits());
         assert!(!almost::zero(-v), "{} {:x}", v, v.to_bits());
     }
 
-    for &v in &[almost::f64::TOLERANCE.prev(), 0.0, std::f64::EPSILON, 0.0.next()] {
+    for &v in &[almost::F64_TOLERANCE.prev(), 0.0, std::f64::EPSILON, 0.0.next()] {
         assert!(almost::zero(v), "{} {:x}", v, v.to_bits());
         assert!(almost::zero(-v), "{} {:x}", v, v.to_bits());
     }

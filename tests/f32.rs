@@ -181,7 +181,7 @@ fn test_f32() {
 
     let mut tolerances = [
         std::f32::EPSILON * 2.0,
-        almost::f32::TOLERANCE,
+        almost::F32_TOLERANCE,
         1.0f32.prev(),
         0.0, 0.0, 0.0, 0.0, 0.0
     ];
@@ -235,12 +235,12 @@ fn test_f32() {
         }
     }
 
-    for &v in &[almost::f32::TOLERANCE, 1.0, std::f32::NAN, std::f32::INFINITY] {
+    for &v in &[almost::F32_TOLERANCE, 1.0, std::f32::NAN, std::f32::INFINITY] {
         assert!(!almost::zero(v), "{} {:x}", v, v.to_bits());
         assert!(!almost::zero(-v), "{} {:x}", v, v.to_bits());
     }
 
-    for &v in &[almost::f32::TOLERANCE.prev(), 0.0, std::f32::EPSILON, 0.0.next()] {
+    for &v in &[almost::F32_TOLERANCE.prev(), 0.0, std::f32::EPSILON, 0.0.next()] {
         assert!(almost::zero(v), "{} {:x}", v, v.to_bits());
         assert!(almost::zero(-v), "{} {:x}", v, v.to_bits());
     }
