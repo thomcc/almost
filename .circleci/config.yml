@@ -40,21 +40,16 @@ jobs:
             rm rustup-init
             echo 'export PATH=$HOME/.cargo/bin:$PATH' >> $BASH_ENV
 
-      - run: rustup target add i686-unknown-linux-gnu mipsel-unknown-linux-gnu arm-unknown-linux-gnueabihf sparc64-unknown-linux-gnu
+      - run: rustup target add i686-unknown-linux-gnu mipsel-unknown-linux-gnu armv7-unknown-linux-gnueabihf
 
       - run: cargo install cross
 
-      - run: sudo systemctl start docker
-
       - run:
-          name: test i686
+          name: Test i686
           command: cross test --target=i686-unknown-linux-gnu
       - run:
-          name: test mipsel
+          name: Test mipsel
           command: cross test --target=mipsel-unknown-linux-gnu
       - run:
-          name: test arm
-          command: cross test --target=arm-unknown-linux-gnueabihf
-      - run:
-          name: test sparc
-          command: cross test --target=sparc64-unknown-linux-gnu
+          name: Test arm
+          command: cross test --target=armv7-unknown-linux-gnueabihf
