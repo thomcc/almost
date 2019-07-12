@@ -5,6 +5,9 @@ workflows:
   test:
     jobs:
       - Run tests
+  cross:
+    jobs:
+      - Cross Test
 
 jobs:
   Run tests:
