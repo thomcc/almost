@@ -150,7 +150,7 @@ macro_rules! assert_almost_equal {
     };
     ($a:expr, $b:expr, $tol:expr) => {
         assert!(
-            almost::equal_with_tolerance($a, $b, $tol),
+            almost::equal_with($a, $b, $tol),
             "should be almost equal: {} ({:x}) and {} ({:x}) using tol {} ({:x})",
             $a, $a.to_bits(), $b, $b.to_bits(), $tol, $tol.to_bits());
     };
@@ -164,7 +164,7 @@ macro_rules! assert_not_almost_equal {
     };
     ($a:expr, $b:expr, $tol:expr) => {
         assert!(
-            !almost::equal_with_tolerance($a, $b, $tol),
+            !almost::equal_with($a, $b, $tol),
             "should not be almost equal: {} ({:x}) and {} ({:x}) using tol {} ({:x})",
             $a, $a.to_bits(), $b, $b.to_bits(), $tol, $tol.to_bits());
     };

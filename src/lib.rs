@@ -78,7 +78,7 @@ pub(crate) mod imp;
 /// values produced by arbitrary computation, while still tight enough for it to
 /// be unlikely to cause false positives in practice This is a good default, but
 /// you have a tighter bound you need to use,
-/// [`almost::equal_with_tolerance`](equal_with_tolerance) is also available.
+/// [`almost::equal_with`](equal_with) is also available.
 ///
 /// Note that this returns false in the case that both values are NaN.
 #[inline]
@@ -105,7 +105,7 @@ pub fn equal<T: AlmostEqual>(lhs: T, rhs: T) -> bool {
 /// default for user code that does not keep track of this, while still tight
 /// enough for it to be unlikely to cause false positives in practice. However,
 /// if you need a tighter bound, the function
-/// [`almost::zero_with_tolerance`](zero_with_tolerance) can be used.
+/// [`almost::zero_with`](zero_with) can be used.
 #[inline]
 pub fn zero<T: AlmostEqual>(a: T) -> bool {
     a.almost_zero()
@@ -116,7 +116,7 @@ pub fn zero<T: AlmostEqual>(a: T) -> bool {
 ///
 /// ```
 /// # use core as std;
-/// assert!(!almost::zero_with_tolerance(std::f32::EPSILON, std::f32::EPSILON));
+/// assert!(!almost::zero_with(std::f32::EPSILON, std::f32::EPSILON));
 /// ```
 ///
 /// This is a version of [`almost::zero`](zero) which does not define a
@@ -130,7 +130,7 @@ pub fn zero<T: AlmostEqual>(a: T) -> bool {
 ///
 /// However, for comparison with zero it is possible to give broad guidelines
 /// (note that these do *not* apply to
-/// [`almost::equal_with_tolerance`](equal_with_tolerance), which for which the
+/// [`almost::equal_with`](equal_with), which for which the
 /// correct decision is more challenging).
 ///
 /// # Panics
@@ -139,8 +139,8 @@ pub fn zero<T: AlmostEqual>(a: T) -> bool {
 ///
 /// In release builds it should never panic.
 #[inline]
-pub fn zero_with_tolerance<T: AlmostEqual>(v: T, tolerance: T) -> bool{
-    v.almost_zero_with_tolerance(tolerance)
+pub fn zero_with<T: AlmostEqual>(v: T, tolerance: T::Float) -> bool{
+    v.almost_zero_with(tolerance)
 }
 
 /// Returns `true` if `lhs` and `rhs` are almost equal using the provided
@@ -148,11 +148,11 @@ pub fn zero_with_tolerance<T: AlmostEqual>(v: T, tolerance: T) -> bool{
 ///
 /// ```
 /// const MY_TOLERANCE: f32 = almost::F32_TOLERANCE / 2.0;
-/// assert!(almost::equal_with_tolerance(0.1 + 0.2, 0.3, MY_TOLERANCE));
+/// assert!(almost::equal_with(0.1 + 0.2, 0.3f32, MY_TOLERANCE));
 /// ```
 ///
 /// Do not use this to compare a value with a constant zero. Instead, for this
-/// you should use [`almost::zero_with_tolerance`](zero_with_tolerance).
+/// you should use [`almost::zero_with`](zero_with).
 ///
 /// # Panics
 /// This function panics in debug mode if `tolerance` is less than `T::EPSILON`
@@ -160,23 +160,27 @@ pub fn zero_with_tolerance<T: AlmostEqual>(v: T, tolerance: T) -> bool{
 ///
 /// In release builds it should never panic.
 #[inline]
-pub fn equal_with_tolerance<T: AlmostEqual>(lhs: T, rhs: T, tolerance: T) -> bool {
-    lhs.almost_equals_with_tolerance(rhs, tolerance)
+pub fn equal_with<T: AlmostEqual>(lhs: T, rhs: T, tolerance: T::Float) -> bool {
+    lhs.almost_equals_with(rhs, tolerance)
 }
 
 /// A trait for comparing floating point numbers. Not broadly intended to be
 /// used by most code (instead, use the functions at the crate root), however it
 /// could be useful for generic code too.
 pub trait AlmostEqual {
+    /// The floating point type. For f32 and f64 this is Self, but for custom
+    /// aggregate types it could be different.
+    type Float;
+
     /// The default tolerance value for this type. Typically equivalent to
     /// `T::EPSILON.sqrt()`, as we assume that around half of the precision bits
     /// of any arbitrary computation have been rounded away.
-    const DEFAULT_TOLERANCE: Self;
+    const DEFAULT_TOLERANCE: Self::Float;
 
     /// The machine epsilon for this type. This generally should not be used as
     /// a tolerance value (it's frequently too strict), however it can be useful
     /// when computing tolerances.
-    const MACHINE_EPSILON: Self;
+    const MACHINE_EPSILON: Self::Float;
 
     /// Equivalent to [`almost::zero`](zero).
     /// ```
@@ -186,7 +190,7 @@ pub trait AlmostEqual {
     /// ```
     #[inline]
     fn almost_zero(self) -> bool where Self: Sized {
-        self.almost_zero_with_tolerance(Self::DEFAULT_TOLERANCE)
+        self.almost_zero_with(Self::DEFAULT_TOLERANCE)
     }
 
     /// Equivalent to [`almost::equal`](equal).
@@ -197,24 +201,24 @@ pub trait AlmostEqual {
     /// ```
     #[inline]
     fn almost_equals(self, rhs: Self) -> bool where Self: Sized {
-        self.almost_equals_with_tolerance(rhs, Self::DEFAULT_TOLERANCE)
+        self.almost_equals_with(rhs, Self::DEFAULT_TOLERANCE)
     }
 
-    /// Equivalent to [`almost::equal_with_tolerance`](equal_with_tolerance).
+    /// Equivalent to [`almost::equal_with`](equal_with).
     /// ```
-    /// # let (a, b) = (0.5, 0.5);
+    /// # let (a, b) = (0.5f32, 0.5);
     /// # use almost::AlmostEqual;
     /// const MY_TOLERANCE: f32 = almost::F32_TOLERANCE / 2.0;
-    /// assert!(a.almost_equals_with_tolerance(b, MY_TOLERANCE));
+    /// assert!(a.almost_equals_with(b, MY_TOLERANCE));
     /// ```
-    fn almost_equals_with_tolerance(self, rhs: Self, tol: Self) -> bool;
+    fn almost_equals_with(self, rhs: Self, tol: Self::Float) -> bool;
 
-    /// Equivalent to [`almost::zero_with_tolerance`](zero_with_tolerance).
+    /// Equivalent to [`almost::zero_with`](zero_with).
     /// ```
     /// # use almost::AlmostEqual;
-    /// assert!(0.01.almost_zero_with_tolerance(0.05));
+    /// assert!(0.01.almost_zero_with(0.05));
     /// ```
-    fn almost_zero_with_tolerance(self, tol: Self) -> bool;
+    fn almost_zero_with(self, tol: Self::Float) -> bool;
 }
 
 /// The default tolerance used for `f64`. Equivalent to `f64::EPSILON.sqrt()`
@@ -227,18 +231,19 @@ pub const F64_TOLERANCE: f64 = 0.000000014901161193847656_f64;
 pub const F32_TOLERANCE: f32 = 0.00034526698_f32;
 
 impl AlmostEqual for f64 {
+    type Float = f64;
 
-    const MACHINE_EPSILON: Self = core::f64::EPSILON;
+    const MACHINE_EPSILON: Self::Float = core::f64::EPSILON;
 
-    const DEFAULT_TOLERANCE: Self = F64_TOLERANCE;
+    const DEFAULT_TOLERANCE: Self::Float = F64_TOLERANCE;
 
-    fn almost_equals_with_tolerance(self, rhs: Self, tol: Self) -> bool {
+    fn almost_equals_with(self, rhs: Self, tol: Self::Float) -> bool {
         debug_assert!(tol < 1.0, "Tolerance should not be greater than 1.0");
         debug_assert!(tol >= Self::MACHINE_EPSILON, "Tolerance should not be smaller than the machine epsilon");
         crate::imp::f64::eq_with_tol_impl(self, rhs, tol)
     }
 
-    fn almost_zero_with_tolerance(self, tol: Self) -> bool {
+    fn almost_zero_with(self, tol: Self::Float) -> bool {
         debug_assert!(tol > 0.0);
         crate::imp::f64::abs(self) < tol
     }
@@ -246,19 +251,21 @@ impl AlmostEqual for f64 {
 
 
 impl AlmostEqual for f32 {
+    type Float = f32;
 
-    const MACHINE_EPSILON: Self = core::f32::EPSILON;
+    const MACHINE_EPSILON: Self::Float = core::f32::EPSILON;
 
-    const DEFAULT_TOLERANCE: Self = F32_TOLERANCE;
+    const DEFAULT_TOLERANCE: Self::Float = F32_TOLERANCE;
 
-    fn almost_equals_with_tolerance(self, rhs: Self, tol: Self) -> bool {
+    fn almost_equals_with(self, rhs: Self, tol: Self::Float) -> bool {
         debug_assert!(tol < 1.0, "Tolerance should not be greater than 1.0");
         debug_assert!(tol >= Self::MACHINE_EPSILON, "Tolerance should not be smaller than the machine epsilon");
         crate::imp::f32::eq_with_tol_impl(self, rhs, tol)
     }
 
-    fn almost_zero_with_tolerance(self, tol: Self) -> bool {
+    fn almost_zero_with(self, tol: Self::Float) -> bool {
         debug_assert!(tol > 0.0);
         crate::imp::f32::abs(self) < tol
     }
 }
+
