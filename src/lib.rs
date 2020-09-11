@@ -62,6 +62,9 @@
 //! of tradeoffs, and while I believe the ones made by this library are good for
 //! most cases, they do not and cannot satisfy every possible case.
 #![no_std]
+#![allow(clippy::float_cmp)]
+// TODO: fix in next release by requiring Float: Copy
+#![allow(clippy::declare_interior_mutable_const)]
 
 pub(crate) mod imp;
 
@@ -139,7 +142,7 @@ pub fn zero<T: AlmostEqual>(a: T) -> bool {
 ///
 /// In release builds it should never panic.
 #[inline]
-pub fn zero_with<T: AlmostEqual>(v: T, tolerance: T::Float) -> bool{
+pub fn zero_with<T: AlmostEqual>(v: T, tolerance: T::Float) -> bool {
     v.almost_zero_with(tolerance)
 }
 
@@ -189,7 +192,10 @@ pub trait AlmostEqual {
     /// assert!(v.almost_zero());
     /// ```
     #[inline]
-    fn almost_zero(self) -> bool where Self: Sized {
+    fn almost_zero(self) -> bool
+    where
+        Self: Sized,
+    {
         self.almost_zero_with(Self::DEFAULT_TOLERANCE)
     }
 
@@ -200,7 +206,10 @@ pub trait AlmostEqual {
     /// assert!(a.almost_equals(b));
     /// ```
     #[inline]
-    fn almost_equals(self, rhs: Self) -> bool where Self: Sized {
+    fn almost_equals(self, rhs: Self) -> bool
+    where
+        Self: Sized,
+    {
         self.almost_equals_with(rhs, Self::DEFAULT_TOLERANCE)
     }
 
@@ -239,7 +248,10 @@ impl AlmostEqual for f64 {
 
     fn almost_equals_with(self, rhs: Self, tol: Self::Float) -> bool {
         debug_assert!(tol < 1.0, "Tolerance should not be greater than 1.0");
-        debug_assert!(tol >= Self::MACHINE_EPSILON, "Tolerance should not be smaller than the machine epsilon");
+        debug_assert!(
+            tol >= Self::MACHINE_EPSILON,
+            "Tolerance should not be smaller than the machine epsilon"
+        );
         crate::imp::f64::eq_with_tol_impl(self, rhs, tol)
     }
 
@@ -248,7 +260,6 @@ impl AlmostEqual for f64 {
         crate::imp::f64::abs(self) < tol
     }
 }
-
 
 impl AlmostEqual for f32 {
     type Float = f32;
@@ -259,7 +270,10 @@ impl AlmostEqual for f32 {
 
     fn almost_equals_with(self, rhs: Self, tol: Self::Float) -> bool {
         debug_assert!(tol < 1.0, "Tolerance should not be greater than 1.0");
-        debug_assert!(tol >= Self::MACHINE_EPSILON, "Tolerance should not be smaller than the machine epsilon");
+        debug_assert!(
+            tol >= Self::MACHINE_EPSILON,
+            "Tolerance should not be smaller than the machine epsilon"
+        );
         crate::imp::f32::eq_with_tol_impl(self, rhs, tol)
     }
 
@@ -268,4 +282,3 @@ impl AlmostEqual for f32 {
         crate::imp::f32::abs(self) < tol
     }
 }
-
