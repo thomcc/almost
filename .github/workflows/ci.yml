@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        targets:
+        target:
           - i686-unknown-linux-gnu
           - armv7-linux-androideabi
           - aarch64-linux-android
