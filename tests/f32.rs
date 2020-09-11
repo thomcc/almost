@@ -1,4 +1,3 @@
-
 const TEST_DATA: &[u32] = &[
     0x00000000, 0x00000001, 0x00000002, 0x00000002, 0x00000001, 0x00000002, 0x00000003, 0x00000003,
     0x00000003, 0x00000004, 0x00000005, 0x00000006, 0x00000007, 0x00000008, 0x00000009, 0x0000000c,
@@ -146,13 +145,23 @@ macro_rules! assert_almost_equal {
         assert!(
             almost::equal($a, $b),
             "should be almost equal: {} ({:x}) and {} ({:x})",
-            $a, $a.to_bits(), $b, $b.to_bits());
+            $a,
+            $a.to_bits(),
+            $b,
+            $b.to_bits()
+        );
     };
     ($a:expr, $b:expr, $tol:expr) => {
         assert!(
             almost::equal_with($a, $b, $tol),
             "should be almost equal: {} ({:x}) and {} ({:x}) using tol {} ({:x})",
-            $a, $a.to_bits(), $b, $b.to_bits(), $tol, $tol.to_bits());
+            $a,
+            $a.to_bits(),
+            $b,
+            $b.to_bits(),
+            $tol,
+            $tol.to_bits()
+        );
     };
 }
 macro_rules! assert_not_almost_equal {
@@ -160,21 +169,30 @@ macro_rules! assert_not_almost_equal {
         assert!(
             !almost::equal($a, $b),
             "should not be almost equal: {} ({:x}) and {} ({:x})",
-            $a, $a.to_bits(), $b, $b.to_bits());
+            $a,
+            $a.to_bits(),
+            $b,
+            $b.to_bits()
+        );
     };
     ($a:expr, $b:expr, $tol:expr) => {
         assert!(
             !almost::equal_with($a, $b, $tol),
             "should not be almost equal: {} ({:x}) and {} ({:x}) using tol {} ({:x})",
-            $a, $a.to_bits(), $b, $b.to_bits(), $tol, $tol.to_bits());
+            $a,
+            $a.to_bits(),
+            $b,
+            $b.to_bits(),
+            $tol,
+            $tol.to_bits()
+        );
     };
 }
-
 
 #[test]
 fn test_f32() {
     use ieee754::Ieee754;
-    use rand::{prelude::*, distributions::Uniform, rngs::SmallRng};
+    use rand::{distributions::Uniform, prelude::*, rngs::SmallRng};
 
     let mut rng = SmallRng::seed_from_u64(TEST_DATA.as_ptr() as usize as u64);
     let tolerance_dist = Uniform::new_inclusive(std::f32::EPSILON, 1.0.prev());
@@ -183,11 +201,15 @@ fn test_f32() {
         std::f32::EPSILON * 2.0,
         almost::F32_TOLERANCE,
         1.0f32.prev(),
-        0.0, 0.0, 0.0, 0.0, 0.0
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
     ];
 
-    for i in 3..tolerances.len() {
-        tolerances[i] = tolerance_dist.sample(&mut rng);
+    for tol in tolerances.iter_mut().skip(3) {
+        *tol = tolerance_dist.sample(&mut rng);
     }
 
     assert_not_almost_equal!(std::f32::NAN, std::f32::NAN);
@@ -235,15 +257,23 @@ fn test_f32() {
         }
     }
 
-    for &v in &[almost::F32_TOLERANCE, 1.0, std::f32::NAN, std::f32::INFINITY] {
+    for &v in &[
+        almost::F32_TOLERANCE,
+        1.0,
+        std::f32::NAN,
+        std::f32::INFINITY,
+    ] {
         assert!(!almost::zero(v), "{} {:x}", v, v.to_bits());
         assert!(!almost::zero(-v), "{} {:x}", v, v.to_bits());
     }
 
-    for &v in &[almost::F32_TOLERANCE.prev(), 0.0, std::f32::EPSILON, 0.0.next()] {
+    for &v in &[
+        almost::F32_TOLERANCE.prev(),
+        0.0,
+        std::f32::EPSILON,
+        0.0.next(),
+    ] {
         assert!(almost::zero(v), "{} {:x}", v, v.to_bits());
         assert!(almost::zero(-v), "{} {:x}", v, v.to_bits());
     }
 }
-
-

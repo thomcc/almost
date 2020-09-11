@@ -1,10 +1,10 @@
-
 // This is gross but it's also a big pain to write this via a trait...
 
 macro_rules! impl_equals {
     ($fp:ident, $bits:ident, $SIGNIFICAND_SIZE:expr) => {
         const SIGNIFICAND_SIZE: $bits = $SIGNIFICAND_SIZE;
-        const EXPONENT_SIZE: $bits = (core::mem::size_of::<$fp>() as $bits) * 8 - SIGNIFICAND_SIZE - 1;
+        const EXPONENT_SIZE: $bits =
+            (core::mem::size_of::<$fp>() as $bits) * 8 - SIGNIFICAND_SIZE - 1;
         const EXPONENT_MASK: $bits = ((1 << EXPONENT_SIZE) - 1) << SIGNIFICAND_SIZE;
         const EXPONENT_BIAS: $bits = (1 << (EXPONENT_SIZE - 1)) - 1;
 
@@ -53,8 +53,19 @@ macro_rules! impl_equals {
                 // rescale both so that we can do that.
 
                 // ensure lhs is the infinite one.
-                let (lhs, rhs) = if lhs.is_infinite() { (lhs, rhs) } else { (rhs, lhs) };
-                debug_assert!(rhs.is_finite() && lhs.is_infinite(), "logic bug {} {} {:x} {:x}", lhs, rhs, lhs.to_bits(), rhs.to_bits());
+                let (lhs, rhs) = if lhs.is_infinite() {
+                    (lhs, rhs)
+                } else {
+                    (rhs, lhs)
+                };
+                debug_assert!(
+                    rhs.is_finite() && lhs.is_infinite(),
+                    "logic bug {} {} {:x} {:x}",
+                    lhs,
+                    rhs,
+                    lhs.to_bits(),
+                    rhs.to_bits()
+                );
                 let rbits = rhs.to_bits();
                 if (rbits & EXPONENT_MASK) == 0 {
                     // subnormal, so clearly not equal to infinity, and would
@@ -72,14 +83,12 @@ macro_rules! impl_equals {
                 eq_with_tol_impl(new_lhs, new_rhs, tol)
             }
         }
-
     };
 }
 
 pub(crate) mod f32 {
     impl_equals!(f32, u32, 23);
 }
-
 
 pub(crate) mod f64 {
     impl_equals!(f64, u64, 52);
