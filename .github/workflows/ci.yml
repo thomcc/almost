@@ -80,3 +80,25 @@ jobs:
       - run: cross test --verbose --target=${{ matrix.target }} --no-default-features
       - run: cross test --verbose --target=${{ matrix.target }} --all-features
       # ...
+  codecov-grcov:
+    name: Generate code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: nightly
+      - name: Run test for coverage
+        env:
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+          RUSTDOCFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+        run: |
+          cargo test --workspace --all-features --verbose
+          cargo test --workspace --no-default-features --verbose
+          # If you need to test multiple feature sets, add
+          # those tests calls here too
+      - uses: actions-rs/grcov@v0.1
+      # Note: non open-source code will need to provide a token here, I think.
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
